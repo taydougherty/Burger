@@ -1,42 +1,82 @@
 var connection = require("../config/connection.js");
 
-function selectAll(){
-    connection.query("SELECT * FROM burgers;", function(err, data) {
-        if (err) {
-          return res.status(500).end();
-        }
-    
-        // res.render("index", { burgers: data });
-      });
-};
+function printQuestionMarks(num) {
+    var arr = [];
+  
+    for (var i = 0; i < num; i++) {
+      arr.push("?");
+    }
+  
+    return arr.toString();
+  }
 
-function insertOne(){
-    connection.query("INSERT INTO burgers (burger_name, devoured) VALUES (?, ?)", [req.body.burger_name, req.body.devoured], function(
-        err,
-        result
-      ) {
-        if (err) {
-          return res.status(500).end();
-        }
-        
-        res.json({ id: result.insertId });
-      });
-};
+  function objToSql(ob) {
+    var arr = [];
+  
+    for (var key in ob) {
+      var value = ob[key];
 
-function updateOne(){
-    connection.query(
-        "UPDATE burgers SET burger_name = ?, devoured = ? WHERE id = ?",
-        [req.body.burger_name, req.body.devoured, req.params.id],
-        function(err, result) {
-          if (err) {
-            return res.status(500).end();
-          }
-          else if (result.changedRows === 0) {
-            return res.status(404).end();
-          }
-          res.status(200).end();
+      if (Object.hasOwnProperty.call(ob, key)) {
+
+        if (typeof value === "string" && value.indexOf(" ") >= 0) {
+          value = "'" + value + "'";
         }
-      );
-};
+
+        arr.push(key + "=" + value);
+      }
+    }
+  
+    return arr.toString();
+  }
+  
+  var orm = {
+    selectAll: function(table, cb) {
+      var queryString = "SELECT * FROM " + table + ";";
+      connection.query(queryString, function(err, result) {
+        if (err) {
+          throw err;
+        }
+        cb(result);
+      });
+    },
+    insertOne: function(table, cols, vals, cb) {
+      var queryString = "INSERT INTO " + table;
+  
+      queryString += " (";
+      queryString += cols.toString();
+      queryString += ") ";
+      queryString += "VALUES (";
+      queryString += printQuestionMarks(vals.length);
+      queryString += ") ";
+  
+      console.log(queryString);
+  
+      connection.query(queryString, vals, function(err, result) {
+        if (err) {
+          throw err;
+        }
+  
+        cb(result);
+      });
+    },
+
+    updateOne: function(table, objColVals, condition, cb) {
+      var queryString = "UPDATE " + table;
+  
+      queryString += " SET ";
+      queryString += objToSql(objColVals);
+      queryString += " WHERE ";
+      queryString += condition;
+  
+      console.log(queryString);
+      connection.query(queryString, function(err, result) {
+        if (err) {
+          throw err;
+        }
+  
+        cb(result);
+      });
+    }
+  };
 
 module.exports = orm;
