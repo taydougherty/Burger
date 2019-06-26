@@ -10,57 +10,57 @@ function printQuestionMarks(num) {
     return arr.toString();
   }
 
-  function objToSql(ob) {
-    var arr = [];
+  function objToSql(obj) {
+    var array = [];
   
-    for (var key in ob) {
-      var value = ob[key];
+    for (var key in obj) {
+      var value = obj[key];
 
-      if (Object.hasOwnProperty.call(ob, key)) {
+      if (Object.hasOwnProperty.call(obj, key)) {
 
         if (typeof value === "string" && value.indexOf(" ") >= 0) {
           value = "'" + value + "'";
         }
 
-        arr.push(key + "=" + value);
+        array.push(key + "=" + value);
       }
     }
   
-    return arr.toString();
+    return array.toString();
   }
   
   var orm = {
-    selectAll: function(table, cb) {
+    selectAll: function(table, callback) {
       var queryString = "SELECT * FROM " + table + ";";
       connection.query(queryString, function(err, result) {
         if (err) {
           throw err;
         }
-        cb(result);
+        callback(result);
       });
     },
-    insertOne: function(table, cols, vals, cb) {
+    insertOne: function(table, columns, values, callback) {
       var queryString = "INSERT INTO " + table;
   
       queryString += " (";
-      queryString += cols.toString();
+      queryString += columns.toString();
       queryString += ") ";
       queryString += "VALUES (";
-      queryString += printQuestionMarks(vals.length);
+      queryString += printQuestionMarks(values.length);
       queryString += ") ";
   
       console.log(queryString);
   
-      connection.query(queryString, vals, function(err, result) {
+      connection.query(queryString, values, function(err, result) {
         if (err) {
           throw err;
         }
   
-        cb(result);
+        callback(result);
       });
     },
 
-    updateOne: function(table, objColVals, condition, cb) {
+    updateOne: function(table, objColVals, condition, callback) {
       var queryString = "UPDATE " + table;
   
       queryString += " SET ";
@@ -74,7 +74,7 @@ function printQuestionMarks(num) {
           throw err;
         }
   
-        cb(result);
+        callback(result);
       });
     }
   };
